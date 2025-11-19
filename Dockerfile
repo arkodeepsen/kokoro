@@ -16,7 +16,8 @@ RUN echo "--- Environment Check ---" && \
     echo "-------------------------"
 
 # Install runpod using the detected python
-RUN python -m pip install runpod>=1.0.0
+# Install runpod using the detected python, bypassing PEP 668 if needed
+RUN python -m pip install runpod>=1.0.0 --break-system-packages || python -m pip install runpod>=1.0.0
 
 # Switch back to appuser
 USER appuser
@@ -27,5 +28,10 @@ ENV PYTHONPATH=/app:/app/api
 # ENV PATH="/app/.venv/bin:$PATH" 
 # Commenting out the forced venv path to rely on system PATH which seems to be what works for 'python'
 
-# Run the serverless handler directly
-CMD ["python", "/app/handler.py"]
+# Point HuggingFace cache to network volume (persistent storage)
+ENV HF_HOME=/runpod-volume
+ENV TRANSFORMERS_CACHE=/runpod-volume
+ENV HF_HUB_CACHE=/runpod-volume
+
+# Run the serverless handler directly with unbuffered output
+CMD ["python", "-u", "/app/handler.py"]
