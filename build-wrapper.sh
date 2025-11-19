@@ -17,7 +17,7 @@ echo "Target registry: ${REGISTRY}"
 
 # Build the wrapper Docker image
 docker build \
-    -f Dockerfile.wrapper \
+    -f Dockerfile \
     -t "${IMAGE_NAME}:${TAG}" \
     -t "${REGISTRY}/${IMAGE_NAME}:${TAG}" \
     .
