@@ -1,0 +1,5 @@
+runpod>=1.0.0
+requests
+loguru
+streamlit
+python-dotenv

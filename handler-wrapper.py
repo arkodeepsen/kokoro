@@ -27,20 +27,6 @@ def start_fastapi():
     logger.info("Starting internal FastAPI server...")
 
     # Start the FastAPI server using the existing startup method
-    # Try entrypoint.sh first, then fallback to direct uvicorn
-    try:
-        fastapi_process = subprocess.Popen([
-            "/app/entrypoint.sh"
-        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    except FileNotFoundError:
-        # Fallback to direct uvicorn start if entrypoint.sh doesn't exist
-        fastapi_process = subprocess.Popen([
-            "/app/.venv/bin/python", "-m", "uvicorn",
-            "api.src.main:app",
-            "--host", "0.0.0.0",
-            "--port", "8880"
-        ], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd="/app")
-
     # Wait for the server to be ready
     max_wait = 120  # 2 minutes max wait
     start_time = time.time()
