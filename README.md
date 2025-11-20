@@ -1,68 +1,30 @@
 # Kokoro Serverless
 
-<div align="center">
-
 [![Runpod](https://api.runpod.io/badge/arkodeepsen/kokoro)](https://console.runpod.io/hub/arkodeepsen/kokoro)
 
-![Kokoro Serverless](https://img.shields.io/badge/Kokoro-Serverless-blue?style=for-the-badge&logo=python)
-![RunPod](https://img.shields.io/badge/RunPod-Serverless-purple?style=for-the-badge&logo=runpod)
-![License](https://img.shields.io/badge/License-Apache%202.0-green?style=for-the-badge)
+[![One-Click Pod Deployment](https://cdn.prod.website-files.com/67d20fb9f56ff2ec6a7a657d/685b44aed6fc50d169003af4_banner-runpod.webp)](https://console.runpod.io/deploy?template=arkodeepsen/kokoro&ref=az0kmnor)
 
-**High-Quality Text-to-Speech with Voice Mixing & Phonemes**
+A production-ready RunPod serverless endpoint for Kokoro TTS - a high-quality, lightweight text-to-speech model with exceptional voice mixing and phoneme generation capabilities.
 
-[Features](#features) • [API Usage](#api-usage) • [Deployment](#deployment) • [Clients](#clients)
+## Features
+- **Official Kokoro Model** - v0.19 (82M parameters) high-fidelity TTS
+- **GPU Optimized** - Runs efficiently on RTX 3090, 4090, A4000, and L4 GPUs
+- **Auto-scaling** - Scales to 0 when idle to save costs
+- **Network Volume Storage** - Model cached persistently across all workers
+- **Fast Cold Starts** - Optimized Docker image with pre-installed dependencies
+- **Advanced Audio** - Voice mixing, word timestamps, and phoneme generation
 
-</div>
+## Model Specifications
+- **Model**: `hexgrad/Kokoro-82M`
+- **Recommended VRAM**: 4GB+ (8GB recommended)
+- **Precision**: float32 / float16
+- **Languages**: English (American/British), French, Japanese, Chinese, and more
+- **Voices**: Multiple high-quality voices with mixing support (`af_bella+af_sky`)
+- **License**: Apache 2.0
 
----
+## API Usage
 
-## � Overview
-
-**Kokoro Serverless** is a production-ready, serverless deployment of the Kokoro TTS model, optimized for RunPod. It provides an OpenAI-compatible API for high-quality text-to-speech generation, featuring advanced capabilities like voice mixing, word-level timestamps, and phoneme generation.
-
-Built on top of `ghcr.io/remsky/kokoro-fastapi-gpu`, this serverless wrapper ensures **zero cold-start latency** for model loading (via volume caching) and **100% API compatibility** with the original project.
-
-## ✨ Features
-
-- ️ **High-Quality TTS**: Generate natural-sounding speech in multiple languages.
-- 🎛️ **Voice Mixing**: Combine multiple voices (e.g., `af_bella+af_sky`) for unique outputs.
-- ⏱️ **Word Timestamps**: Get precise start/end times for every word (SRT generation).
-- 🔡 **Phonemization**: Convert text to phonemes for linguistic analysis.
-- ⚡ **Serverless Optimized**:
-  - **Fast Cold Starts**: Models cached to network volume.
-  - **Auto-Scaling**: Scales to zero when idle, up to N workers under load.
-  - **Cost-Efficient**: Pay only for the inference time you use.
-
-## 🚀 Deployment
-
-### One-Click Deploy (RunPod)
-
-1. **Clone this repository**.
-2. **Upload these files** to your repo:
-   ```
-   ├── Dockerfile
-   ├── handler.py
-   ├── runpod.toml
-   ├── app.py
-   ├── inference.py
-   └── README.md
-   ```
-2. **Create a Network Volume** in RunPod (recommended 20GB) to cache models.
-3. **Create a Serverless Endpoint**:
-   - **Template**: Select this repository (or build your own template).
-   - **Container Image**: `ghcr.io/arkodeepsen/kokoro-fastapi-serverless:latest`
-   - **Environment Variables**:
-     - `HF_HOME`: `/runpod-volume`
-     - `TRANSFORMERS_CACHE`: `/runpod-volume`
-   - **GPU**: NVIDIA RTX 3090 / 4090 / A4000 or better recommended.
-
-## 📡 API Usage
-
-The endpoint exposes a single entry point `/runsync` (or `/run` for async) that accepts a JSON payload. All original Kokoro endpoints are supported by wrapping them in an `input` object.
-
-### 1. Standard Text-to-Speech
-**Endpoint**: `/runsync`
-
+### Input Format
 ```json
 {
   "input": {
@@ -75,93 +37,112 @@ The endpoint exposes a single entry point `/runsync` (or `/run` for async) that 
 }
 ```
 
-### 2. Voice Combination
-Mix two voices together by joining their IDs with `+`.
+### Parameters
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `input` | string | **required** | Text to generate speech from |
+| `voice` | string | `af_bella` | Voice ID or combination (e.g., `af_bella+af_sky`) |
+| `speed` | float | `1.0` | Speech speed multiplier |
+| `response_format` | string | `mp3` | Audio format (`mp3`, `wav`, `pcm`) |
+| `model` | string | `kokoro` | Model identifier |
 
+### Output Format
 ```json
 {
-  "input": {
-    "model": "kokoro",
-    "input": "This is a mixed voice.",
-    "voice": "af_bella+af_sky",
-    "response_format": "mp3"
-  }
+  "audio_base64": "base64_encoded_audio_data...",
+  "text": "Hello world!...",
+  "voice": "af_bella",
+  "size_bytes": 123456
 }
 ```
 
-### 3. Captioned Speech (Timestamps)
-Generate audio along with word-level timestamps (perfect for subtitles).
+### Example Request (Python)
+```python
+import requests
+import base64
 
-```json
-{
-  "input": {
-    "endpoint": "/dev/captioned_speech",
-    "method": "POST",
-    "input": "Generate subtitles for this text.",
-    "voice": "af_bella",
-    "return_timestamps": true
-  }
+endpoint_id = "YOUR_ENDPOINT_ID"
+api_key = "YOUR_API_KEY"
+
+url = f"https://api.runpod.ai/v2/{endpoint_id}/runsync"
+
+payload = {
+    "input": {
+        "input": "Hello from Kokoro Serverless!",
+        "voice": "af_bella",
+        "response_format": "mp3"
+    }
 }
+
+headers = {
+    "Authorization": f"Bearer {api_key}",
+    "Content-Type": "application/json"
+}
+
+response = requests.post(url, json=payload, headers=headers)
+result = response.json()
+
+if "audio_base64" in result:
+    audio_data = base64.b64decode(result["audio_base64"])
+    with open("output.mp3", "wb") as f:
+        f.write(audio_data)
+    print("Audio saved to output.mp3")
+else:
+    print("Error:", result)
 ```
 
-**Response:**
-```json
-{
-  "audio": "base64_encoded_audio...",
-  "timestamps": [
-    {"word": "Generate", "start": 0.0, "end": 0.5},
-    {"word": "subtitles", "start": 0.5, "end": 1.2},
-    ...
-  ]
-}
-```
-
-### 4. Text to Phonemes
-Convert text into its phonemic representation.
-
-```json
-{
-  "input": {
-    "endpoint": "/dev/phonemize",
-    "method": "POST",
-    "text": "Hello world",
-    "language": "a"
-  }
-}
-```
-
-## � Clients
-
-This repository includes two ready-to-use clients to interact with your endpoint.
-
-### Streamlit Web App (`app.py`)
-A full-featured GUI for generating audio, mixing voices, and creating SRT subtitles.
-
+### Example Request (cURL)
 ```bash
-pip install -r requirements.txt
-streamlit run app.py
+curl -X POST https://api.runpod.ai/v2/YOUR_ENDPOINT_ID/runsync \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": {
+      "input": "Hello from Kokoro Serverless!",
+      "voice": "af_bella",
+      "response_format": "mp3"
+    }
+  }'
 ```
 
-### CLI Tool (`inference.py`)
-A simple command-line tool for quick generations.
+## Deployment Configuration
 
-```bash
-python inference.py --text "Hello there" --voice af_bella --output hello.mp3
-```
+The template is configured with optimal settings in `runpod.toml`:
 
-## ⚙️ Configuration
+- **GPU Types**: RTX 4000 Ada, L4, A4000, RTX 3090/4090, A100
+- **Recommended VRAM**: 8GB
+- **Container Disk**: 10GB (code + dependencies)
+- **Network Volume**: ~20GB (persistent model storage) - **⚠️ HIGHLY RECOMMENDED**
+- **Workers**: 0-5 (auto-scaling)
+- **Timeout**: 300 seconds per job
 
-| File | Purpose |
-|----------------------|-------------|
-| `Dockerfile` | Lightweight wrapper using proven base image |
-| `handler.py` | Complete handler supporting all endpoints |
-| `app.py` | Streamlit Client UI for full interaction |
-| `inference.py` | CLI Client for quick testing |
-| `build.sh` | Local build script |
-| `runpod.toml` | RunPod template configuration |
-| `api_schema.json` | Complete API documentation |
-| `.gitignore` | Git ignore patterns |
+### ⚠️ Important: Network Volume Recommended
 
-## 📜 License
+**We highly recommend attaching a network volume (~20GB) when deploying this endpoint.**
 
-This project is licensed under the Apache 2.0 License.
+Without a network volume:
+- ⚠️ Models will be downloaded on **every cold start** (~30-60s delay)
+- ⚠️ Higher bandwidth usage and slower scaling
+
+The network volume:
+- ✅ Stores the model persistently across all workers
+- ✅ Enables **instant cold starts** after the first run
+- ✅ Reduces bandwidth costs
+
+## Performance
+- **Cold Start**: ~30-60 seconds (first run), <5 seconds (cached)
+- **Warm Inference**: <1 second for typical sentences
+- **Memory Usage**: ~3-4GB VRAM
+- **Throughput**: High (lightweight model)
+
+## Tips for Best Results
+1. **Voice Mixing**: Combine voices with `+` (e.g., `af_bella+af_sky`) to create unique personas.
+2. **Timestamps**: Use the `/dev/captioned_speech` endpoint to get word-level timestamps for subtitles.
+3. **Phonemes**: Use `/dev/phonemize` to check how text is processed before generation.
+4. **Speed**: Adjust `speed` (0.5x to 2.0x) to control pacing without altering pitch.
+
+## License
+This project is licensed under the Apache 2.0 License. The Kokoro model itself is Apache 2.0.
+
+## Support
+For issues or questions about this RunPod template, please open an issue on the GitHub repository.
