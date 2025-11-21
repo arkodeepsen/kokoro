@@ -1,6 +1,7 @@
 # Kokoro Serverless
 
 [![Runpod](https://api.runpod.io/badge/arkodeepsen/kokoro)](https://console.runpod.io/hub/arkodeepsen/kokoro)
+Deploy directly on Pod (Alternative, not serverless) - [Pod Template](https://console.runpod.io/deploy?template=ekgy3gw2fd&ref=az0kmnor)
 
 [![One-Click Pod Deployment](https://cdn.prod.website-files.com/67d20fb9f56ff2ec6a7a657d/685b44aed6fc50d169003af4_banner-runpod.webp)](https://console.runpod.io/deploy?template=ekgy3gw2fd&ref=az0kmnor)
 
