@@ -1,3 +1,5 @@
+
+
 # Kokoro Serverless
 
 [![Runpod](https://api.runpod.io/badge/arkodeepsen/kokoro)](https://console.runpod.io/hub/arkodeepsen/kokoro)
@@ -136,7 +138,7 @@ Get a list of all available voice profiles.
 |-----------|------|---------|-------------|
 | `input` | string | **required** | The text to generate speech from. |
 | `voice` | string | `af_bella` | Voice ID (e.g., `af_bella`, `af_sky`) or combination (`voice1+voice2`). |
-| `speed` | float | `1.0` | Speed multiplier (0.5 to 2.0). |
+| `speed` | float | `1.0` | Speed multiplier (0.25 to 4.0). |
 | `response_format` | string | `mp3` | Audio format: `mp3`, `wav`, `pcm`. |
 | `model` | string | `kokoro` | Model identifier. |
 
@@ -254,7 +256,7 @@ The network volume:
 1. **Voice Mixing**: Combine voices with `+` (e.g., `af_bella+af_sky`) to create unique personas.
 2. **Timestamps**: Use the `/dev/captioned_speech` endpoint to get word-level timestamps for subtitles.
 3. **Phonemes**: Use `/dev/phonemize` to check how text is processed before generation.
-4. **Speed**: Adjust `speed` (0.5x to 2.0x) to control pacing without altering pitch.
+4. **Speed**: Adjust `speed` (0.25x to 4.0x) to control pacing without altering pitch.
 
 ## License
 This project is licensed under the Apache 2.0 License. The Kokoro model itself is Apache 2.0.
